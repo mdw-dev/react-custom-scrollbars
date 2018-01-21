@@ -297,18 +297,17 @@ export default class Scrollbars extends Component {
 
     handleVerticalTrackMouseDown(event) {
         event.preventDefault();
-        const { target, clientY } = event;
-        const { top: targetTop } = target.getBoundingClientRect();
-        const thumbHeight = this.getThumbVerticalHeight();
-        var offset = Math.abs(targetTop - clientY) - thumbHeight / 2;
-        const { getVerticalOffset } = this.props;
-//        console.log("BEFORE: " + this.getScrollTopForOffset(offset));
-        if (getVerticalOffset) {
-            //this.view.scrollTop = getVerticalOffset(offset);
-            getVerticalOffset(offset);
-            //console.log("AFTER: " + this.view.scrollTop);
+        const { onVerticalTrackClick } = this.props;
+        if (onVerticalTrackClick) {
+            onVerticalTrackClick(event);
         }
-        this.view.scrollTop = this.getScrollTopForOffset(offset);
+        else {
+            const { target, clientY } = event;
+            const { top: targetTop } = target.getBoundingClientRect();
+            const thumbHeight = this.getThumbVerticalHeight();
+            var offset = Math.abs(targetTop - clientY) - thumbHeight / 2;
+            this.view.scrollTop = this.getScrollTopForOffset(offset);
+        }
     }
 
     handleHorizontalThumbMouseDown(event) {
@@ -359,19 +358,18 @@ export default class Scrollbars extends Component {
             this.view.scrollLeft = this.getScrollLeftForOffset(offset);
         }
         if (this.prevPageY) {
-            const { clientY } = event;
-            const { top: trackTop } = this.trackVertical.getBoundingClientRect();
-            const thumbHeight = this.getThumbVerticalHeight();
-            const clickPosition = thumbHeight - this.prevPageY;
-            var offset = -trackTop + clientY - clickPosition;
-            const { getVerticalOffset } = this.props;
-//          console.log("BEFORE: " + this.getScrollTopForOffset(offset));
-            if (getVerticalOffset) {
-              //this.view.scrollTop = getVerticalOffset(offset);
-                getVerticalOffset(offset);
-              //console.log("AFTER: " + this.view.scrollTop);
+            const { onVerticalDrag } = this.props;
+            if (onVerticalDrag) {
+                onVerticalDrag(event);
             }
-            this.view.scrollTop = this.getScrollTopForOffset(offset);
+            else {
+                const { clientY } = event;
+                const { top: trackTop } = this.trackVertical.getBoundingClientRect();
+                const thumbHeight = this.getThumbVerticalHeight();
+                const clickPosition = thumbHeight - this.prevPageY;
+                var offset = -trackTop + clientY - clickPosition;
+                this.view.scrollTop = this.getScrollTopForOffset(offset);
+            }
         }
         return false;
     }
@@ -472,10 +470,10 @@ export default class Scrollbars extends Component {
             const { scrollTop, clientHeight, scrollHeight } = values;
             const trackVerticalHeight = getInnerHeight(this.trackVertical);
             const thumbVerticalHeight = this.getThumbVerticalHeight();
-            var { thumbVerticalY } = this.props;
-            if (thumbVerticalY) {
-              thumbVerticalY = thumbVerticalY * (trackVerticalHeight - thumbVerticalHeight);
-              console.log("Y: " + thumbVerticalY);
+            var { thumbVerticalTop } = this.props;
+            var thumbVerticalY;
+            if (thumbVerticalTop) {
+              thumbVerticalY = thumbVerticalTop * (trackVerticalHeight - thumbVerticalHeight);
             }
             else {
               thumbVerticalY = scrollTop / (scrollHeight - clientHeight) * (trackVerticalHeight - thumbVerticalHeight);
@@ -516,8 +514,9 @@ export default class Scrollbars extends Component {
             renderTrackVertical,
             renderThumbHorizontal,
             renderThumbVertical,
-            getVerticalOffset,
-            thumbVerticalY,
+            onVerticalTrackClick,
+            onVerticalDrag,
+            thumbVerticalTop,
             tagName,
             hideTracksWhenNotNeeded,
             autoHide,
@@ -629,8 +628,9 @@ Scrollbars.propTypes = {
     renderTrackVertical: PropTypes.func,
     renderThumbHorizontal: PropTypes.func,
     renderThumbVertical: PropTypes.func,
-    getVerticalOffset: PropTypes.func,
-    thumbVerticalY: PropTypes.number,
+    onVerticalTrackClick: PropTypes.func,
+    onVerticalDrag: PropTypes.func,
+    thumbVerticalTop: PropTypes.number,
     tagName: PropTypes.string,
     thumbSize: PropTypes.number,
     thumbMinSize: PropTypes.number,
@@ -658,8 +658,9 @@ Scrollbars.defaultProps = {
     renderTrackVertical: renderTrackVerticalDefault,
     renderThumbHorizontal: renderThumbHorizontalDefault,
     renderThumbVertical: renderThumbVerticalDefault,
-    getVerticalOffset: null,
-    thumbVerticalY: 0,
+    onVerticalTrackClick: null,
+    onVerticalDrag: null,
+    thumbVerticalTop: 0,
     tagName: 'div',
     thumbMinSize: 30,
     hideTracksWhenNotNeeded: false,
