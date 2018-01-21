@@ -145,6 +145,11 @@ export default class Scrollbars extends Component {
             clientHeight
         };
     }
+    
+    getVerticalScale() {
+      const { verticalScale } = this.props;
+      return verticalScale ? verticalScale : 1;
+    }
 
     getThumbHorizontalWidth() {
         const { thumbSize, thumbMinSize } = this.props;
@@ -300,7 +305,11 @@ export default class Scrollbars extends Component {
         const { target, clientY } = event;
         const { top: targetTop } = target.getBoundingClientRect();
         const thumbHeight = this.getThumbVerticalHeight();
-        const offset = Math.abs(targetTop - clientY) - thumbHeight / 2;
+        var offset = Math.abs(targetTop - clientY) - thumbHeight / 2;
+        const verticalScale = this.getVerticalScale();
+        if (verticalScale !== 1) {
+          offset = offset / verticalScale;
+        }
         this.view.scrollTop = this.getScrollTopForOffset(offset);
     }
 
@@ -356,7 +365,11 @@ export default class Scrollbars extends Component {
             const { top: trackTop } = this.trackVertical.getBoundingClientRect();
             const thumbHeight = this.getThumbVerticalHeight();
             const clickPosition = thumbHeight - this.prevPageY;
-            const offset = -trackTop + clientY - clickPosition;
+            var offset = -trackTop + clientY - clickPosition;
+            const verticalScale = this.getVerticalScale();
+            if (verticalScale !== 1) {
+              offset = offset / verticalScale;
+            }
             this.view.scrollTop = this.getScrollTopForOffset(offset);
         }
         return false;
@@ -442,7 +455,7 @@ export default class Scrollbars extends Component {
     update(callback) {
         this.raf(() => this._update(callback));
     }
-
+    
     _update(callback) {
         const { onUpdate, hideTracksWhenNotNeeded } = this.props;
         const values = this.getValues();
@@ -458,7 +471,11 @@ export default class Scrollbars extends Component {
             const { scrollTop, clientHeight, scrollHeight } = values;
             const trackVerticalHeight = getInnerHeight(this.trackVertical);
             const thumbVerticalHeight = this.getThumbVerticalHeight();
-            const thumbVerticalY = scrollTop / (scrollHeight - clientHeight) * (trackVerticalHeight - thumbVerticalHeight);
+            var thumbVerticalY = scrollTop / (scrollHeight - clientHeight) * (trackVerticalHeight - thumbVerticalHeight);
+            const verticalScale = this.getVerticalScale();
+            if (verticalScale !== 1) {
+              thumbVerticalY = thumbVerticalY * verticalScale;
+            }
             const thumbVerticalStyle = {
                 height: thumbVerticalHeight,
                 transform: `translateY(${thumbVerticalY}px)`
@@ -495,6 +512,7 @@ export default class Scrollbars extends Component {
             renderTrackVertical,
             renderThumbHorizontal,
             renderThumbVertical,
+            verticalScale,
             tagName,
             hideTracksWhenNotNeeded,
             autoHide,
@@ -606,6 +624,7 @@ Scrollbars.propTypes = {
     renderTrackVertical: PropTypes.func,
     renderThumbHorizontal: PropTypes.func,
     renderThumbVertical: PropTypes.func,
+    verticalScale: PropTypes.number,
     tagName: PropTypes.string,
     thumbSize: PropTypes.number,
     thumbMinSize: PropTypes.number,
@@ -633,6 +652,7 @@ Scrollbars.defaultProps = {
     renderTrackVertical: renderTrackVerticalDefault,
     renderThumbHorizontal: renderThumbHorizontalDefault,
     renderThumbVertical: renderThumbVerticalDefault,
+    verticalScale: 1,
     tagName: 'div',
     thumbMinSize: 30,
     hideTracksWhenNotNeeded: false,
