@@ -146,11 +146,6 @@ export default class Scrollbars extends Component {
         };
     }
     
-    getVerticalScale() {
-      const { verticalScale } = this.props;
-      return verticalScale ? verticalScale : 1;
-    }
-
     getThumbHorizontalWidth() {
         const { thumbSize, thumbMinSize } = this.props;
         const { scrollWidth, clientWidth } = this.view;
@@ -306,9 +301,12 @@ export default class Scrollbars extends Component {
         const { top: targetTop } = target.getBoundingClientRect();
         const thumbHeight = this.getThumbVerticalHeight();
         var offset = Math.abs(targetTop - clientY) - thumbHeight / 2;
-        const verticalScale = this.getVerticalScale();
-        if (verticalScale !== 1) {
-          offset = offset / verticalScale;
+        const { getVerticalOffset } = this.props;
+//        console.log("BEFORE: " + this.getScrollTopForOffset(offset));
+        if (getVerticalOffset) {
+            //this.view.scrollTop = getVerticalOffset(offset);
+            getVerticalOffset(offset);
+            //console.log("AFTER: " + this.view.scrollTop);
         }
         this.view.scrollTop = this.getScrollTopForOffset(offset);
     }
@@ -366,9 +364,12 @@ export default class Scrollbars extends Component {
             const thumbHeight = this.getThumbVerticalHeight();
             const clickPosition = thumbHeight - this.prevPageY;
             var offset = -trackTop + clientY - clickPosition;
-            const verticalScale = this.getVerticalScale();
-            if (verticalScale !== 1) {
-              offset = offset / verticalScale;
+            const { getVerticalOffset } = this.props;
+//          console.log("BEFORE: " + this.getScrollTopForOffset(offset));
+            if (getVerticalOffset) {
+              //this.view.scrollTop = getVerticalOffset(offset);
+                getVerticalOffset(offset);
+              //console.log("AFTER: " + this.view.scrollTop);
             }
             this.view.scrollTop = this.getScrollTopForOffset(offset);
         }
@@ -471,10 +472,13 @@ export default class Scrollbars extends Component {
             const { scrollTop, clientHeight, scrollHeight } = values;
             const trackVerticalHeight = getInnerHeight(this.trackVertical);
             const thumbVerticalHeight = this.getThumbVerticalHeight();
-            var thumbVerticalY = scrollTop / (scrollHeight - clientHeight) * (trackVerticalHeight - thumbVerticalHeight);
-            const verticalScale = this.getVerticalScale();
-            if (verticalScale !== 1) {
-              thumbVerticalY = thumbVerticalY * verticalScale;
+            var { thumbVerticalY } = this.props;
+            if (thumbVerticalY) {
+              thumbVerticalY = thumbVerticalY * (trackVerticalHeight - thumbVerticalHeight);
+              console.log("Y: " + thumbVerticalY);
+            }
+            else {
+              thumbVerticalY = scrollTop / (scrollHeight - clientHeight) * (trackVerticalHeight - thumbVerticalHeight);
             }
             const thumbVerticalStyle = {
                 height: thumbVerticalHeight,
@@ -512,7 +516,8 @@ export default class Scrollbars extends Component {
             renderTrackVertical,
             renderThumbHorizontal,
             renderThumbVertical,
-            verticalScale,
+            getVerticalOffset,
+            thumbVerticalY,
             tagName,
             hideTracksWhenNotNeeded,
             autoHide,
@@ -624,7 +629,8 @@ Scrollbars.propTypes = {
     renderTrackVertical: PropTypes.func,
     renderThumbHorizontal: PropTypes.func,
     renderThumbVertical: PropTypes.func,
-    verticalScale: PropTypes.number,
+    getVerticalOffset: PropTypes.func,
+    thumbVerticalY: PropTypes.number,
     tagName: PropTypes.string,
     thumbSize: PropTypes.number,
     thumbMinSize: PropTypes.number,
@@ -652,7 +658,8 @@ Scrollbars.defaultProps = {
     renderTrackVertical: renderTrackVerticalDefault,
     renderThumbHorizontal: renderThumbHorizontalDefault,
     renderThumbVertical: renderThumbVerticalDefault,
-    verticalScale: 1,
+    getVerticalOffset: null,
+    thumbVerticalY: 0,
     tagName: 'div',
     thumbMinSize: 30,
     hideTracksWhenNotNeeded: false,
