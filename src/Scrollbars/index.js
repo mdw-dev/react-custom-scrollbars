@@ -654,7 +654,7 @@ Scrollbars.defaultProps = {
     renderThumbVertical: renderThumbVerticalDefault,
     onVerticalTrackClick: null,
     onVerticalDrag: null,
-    thumbVerticalY: 0,
+    thumbVerticalY: null,
     tagName: 'div',
     thumbMinSize: 30,
     hideTracksWhenNotNeeded: false,
